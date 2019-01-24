@@ -13,9 +13,8 @@ from http.server import BaseHTTPRequestHandler
 from http.server import HTTPServer
 from urllib.parse import urlparse
 
-from file_api import make_dir
-from log_api import TheLogger
-
+from shell import make_dir
+from log import TheLogger
 
 def is_port_idle(port):
     """
