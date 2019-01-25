@@ -59,9 +59,7 @@ _start()
     _echo_info "Clean up former data."
     _clean > /dev/null 2>&1
 
-    export LOG_LEVEL_DEBUG
-    python ${SCRIPT_LOCATION}/src/server.py \
-        $pathTempDataDir \
+    python3 ${SCRIPT_LOCATION}/src/server.py \
         "start" \
         $serverPort &
 }
@@ -69,16 +67,21 @@ _start()
 _terminate()
 {
     local pid=""
-    local cmdPattern="python ${SCRIPT_LOCATION}/src/server.py"
+    local cmdPattern="python3 ${SCRIPT_LOCATION}/src/server.py"
     pid=$(ps aux | grep "$cmdPattern" | grep -v grep | sed 's/[[:space:]]\+/ /g' | cut -d ' ' -f 2)
     kill -9 $pid
 }
 
-_set_data()
+_get_response_pattern()
 {
     python3 ${SCRIPT_LOCATION}/src/server.py \
-        $pathTempDataDir \
-        "set" \
+        "get_response_pattern"
+}
+
+_set_response_pattern()
+{
+    python3 ${SCRIPT_LOCATION}/src/server.py \
+        "set_response_pattern" \
         $pathDataFile \
         $flagAddData
 }
@@ -88,7 +91,6 @@ SCRIPT_LOCATION=$(pwd -P)
 builtin cd ${SCRIPT_LOCATION}
 
 LOG_LEVEL_DEBUG=0
-pathTempDataDir="${SCRIPT_LOCATION}/temp"
 exec_mode=''
 serverHost='127.0.0.1'
 serverPort='9100'
@@ -114,15 +116,18 @@ do
         -t)
             exec_mode='_terminate'
             ;;
+        -dg)
+            exec_mode='_get_response_pattern'
+            ;;
         -d)
             shift
-            exec_mode='_set_data'
+            exec_mode='_set_response_pattern'
             pathDataFile=$1
             flagAddData=0
             ;;
         -da)
             shift
-            exec_mode='_set_data'
+            exec_mode='_set_response_pattern'
             pathDataFile=$1
             flagAddData=1
             ;;
@@ -135,4 +140,5 @@ do
     shift
 done
 
+export LOG_LEVEL_DEBUG
 $exec_mode
