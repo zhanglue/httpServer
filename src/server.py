@@ -9,7 +9,7 @@
 import os
 import sys
 import socket
-
+from collections import defaultdict
 from http.server import BaseHTTPRequestHandler
 from http.server import HTTPServer
 from urllib.parse import urlparse
@@ -37,17 +37,78 @@ class RequestHandler(BaseHTTPRequestHandler):
         """
         Forbidden logging.
         """
-        TheLogger.debug(f % args)
+        TheLogger.debug("INNER: " + f % args)
+
+    def response_OK(self, respMsg = "OK\n"):
+        """
+        Reponse "OK".
+        """
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.send_header("Content-Length", len(respMsg.encode()))
+        self.end_headers()
+        self.wfile.write(respMsg.encode().encode())
+
+    def response_404(self, respMsg = "Url not found.\n"):
+        """
+        Response 404.
+        """
+        self.send_response(404)
+        self.send_header("Content-type", "text/plain")
+        self.send_header("Content-Length", len(respMsg))
+        self.end_headers()
+        self.wfile.write(respMsg.encode())
+
+    def response_500(self, respMsg = "FAILED\n"):
+        """
+        Response 500.
+        """
+        self.send_response(500)
+        self.send_header("Content-type", "text/plain")
+        self.send_header("Content-Length", len(respMsg))
+        self.end_headers()
+        self.wfile.write(respMsg.encode())
 
     def do_GET(self):
         """
         Process GET requests.
         """
+        urlEntire = "http://" + self.client_address[0] + self.path
+        urlPieces = urlparse(urlEntire)
+        urlPath = urlPieces.path.strip("/")
+        urlQueries = {}
+        if urlPieces.query:
+            urlQueries = dict(
+                    [x.split("=",1) for x in urlPieces.query.split("&")])
+
+        TheLogger.info("Recieved request: %s" % urlEntire)
+        TheLogger.debug("Recieved request's urlpath : %s" % urlPath)
+        TheLogger.debug("Recieved request's queries : %s" % urlQueries)
+
+        if not urlPath:
+            self.response_OK()
+            return
+
+        responsePattern = get_response_pattern()
+        responsePattern = defaultdict(lambda: None, responsePattern)
+        pattern = responsePattern[urlPath]
+        if not pattern:
+            self.response_404()
+            return
+
         self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", len("AAAA".encode()))
+        headersNormal = {
+                "Content-Length": len(pattern["respData"]),
+                "Content-type": "text/plain"
+                }
+        headersExt = {}
+        if "headers" in pattern:
+            headersExt = pattern["headers"]
+        headers = {**headersNormal, **headersExt}
+        for k, v in headers.items():
+            self.send_header(k, v)
         self.end_headers()
-        self.wfile.write("AAAA".encode())
+        self.wfile.write(pattern["respData"].encode())
 
     def do_POST(self):
         """
@@ -99,11 +160,12 @@ def get_response_pattern():
     responsePattern = {}
     try:
         responsePattern = json_file_to_pyData(pathRespPatternFile)
+        if not responsePattern:
+            responsePattern = {}
         TheLogger.debug("Current response pattern: \n" + \
                 json_dumps(responsePattern))
     except Exception as e:
         TheLogger.error(str(e))
-        return None
 
     return responsePattern
 
@@ -134,7 +196,7 @@ if __name__ == "__main__":
     """
     Main enter.
     """
-    pathTempDataDir = path_join(PATH_ROOT, 'temp')
+    pathTempDataDir = path_join(PATH_ROOT, "temp")
     pathRespPatternFile = path_join(pathTempDataDir, "response_pattern.json")
     make_dir(pathTempDataDir)
     TheLogger.init(pathTempDataDir, "server.log")

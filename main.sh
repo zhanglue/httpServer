@@ -72,6 +72,12 @@ _terminate()
     kill -9 $pid
 }
 
+_restart()
+{
+    _terminate
+    _start
+}
+
 _get_response_pattern()
 {
     python3 ${SCRIPT_LOCATION}/src/server.py \
@@ -115,6 +121,9 @@ do
             ;;
         -t)
             exec_mode='_terminate'
+            ;;
+        -r)
+            exec_mode='_restart'
             ;;
         -dg)
             exec_mode='_get_response_pattern'
