@@ -65,25 +65,51 @@ class HttpServer():
         server.serve_forever()
 
 
-if __name__ == '__main__':
+def start(serverHost, serverPort):
     """
-    Main enter.
+    Start HTTP server.
     """
-    serverHost = sys.argv[1]
-    try:
-        serverPort = int(sys.argv[2])
-    except Exception as e:
-        print("Error: specify port correctly.")
-    pathLog = sys.argv[3]
-
-    make_dir(pathLog)
-    TheLogger.init(pathLog, "server.log")
-
     if not serverHost or not serverPort:
         TheLogger.error('Set server host and port.')
-        exit(1)
+        exit(10)
+
+    if not is_port_idle(serverPort):
+        TheLogger.error("Port {} is in use.".format(serverPort))
+        exit(11)
 
     TheLogger.info('Start HTTP server with %s:%s...' % (serverHost, serverPort))
     httpServer = HttpServer(serverHost, serverPort)
     httpServer.start()
+
+
+def set_data(pathDataFile, flagAddData):
+    """
+    Set behaviour/data.
+    """
+    TheLogger.info(pathDataFile)
+    TheLogger.info(str(flagAddData))
+
+
+if __name__ == '__main__':
+    """
+    Main enter.
+    """
+    pathTempDataDir = sys.argv[1]
+    make_dir(pathTempDataDir)
+    TheLogger.init(pathTempDataDir, "server.log")
+
+    mode = sys.argv[2]
+    if mode == "start":
+        serverHost = "127.0.0.1"
+        try:
+            serverPort = int(sys.argv[3])
+        except Exception as e:
+            print("Error: specify port correctly.")
+        start(serverHost, serverPort)
+    elif mode == "set":
+        pathDataFile = sys.argv[3]
+        flagAddData = bool(int(sys.argv[4]))
+        set_data(pathDataFile, flagAddData)
+    else:
+        TheLogger.error("Unknown parameter {}.".format(mode)) 
 

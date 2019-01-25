@@ -2,9 +2,25 @@
 
 ################################################################################
 # Feature  : Main.
-# Author   : lucuszhang
+# Author   : zhanglue
 # Date     : 2019.01.24
 ################################################################################
+
+_usage()
+{
+    echo '
+./main.sh [--debug] [-p] SERVER_PORT MODE [MODE_PARAMS]
+
+    --debug: Show debug messages in stdout.
+    -p: Set HTTP server port(work in -s mode, 9100 as default).
+    MODE: 
+        -c: Clean up former data.
+        -s: Start a HTTP server.
+        -t: Terminate all HTTP servers.
+        -d: Set server behaviou and data.
+        -da: Set server behaviou and data(add mode).
+        '
+}
 
 _echo_info()
 {
@@ -45,9 +61,9 @@ _start()
 
     export LOG_LEVEL_DEBUG
     python ${SCRIPT_LOCATION}/src/server.py \
-        $serverHost \
-        $serverPort \
-        $serverLogPath &
+        $pathTempDataDir \
+        "start" \
+        $serverPort &
 }
 
 _terminate()
@@ -58,16 +74,26 @@ _terminate()
     kill -9 $pid
 }
 
+_set_data()
+{
+    python3 ${SCRIPT_LOCATION}/src/server.py \
+        $pathTempDataDir \
+        "set" \
+        $pathDataFile \
+        $flagAddData
+}
+
 builtin cd "$(dirname "${BASH_SOURCE-$0}")"
 SCRIPT_LOCATION=$(pwd -P)
 builtin cd ${SCRIPT_LOCATION}
 
 LOG_LEVEL_DEBUG=0
-
-exec_mode='_start'
+pathTempDataDir="${SCRIPT_LOCATION}/temp"
+exec_mode=''
 serverHost='127.0.0.1'
 serverPort='9100'
-serverLogPath="${SCRIPT_LOCATION}/temp"
+pathDataFile=''
+flagAddData=0
 
 while (( $# ))
 do
@@ -75,18 +101,34 @@ do
         -c | --clean )
             exec_mode='_clean'
             ;;
-        -d)
+        --debug)
             LOG_LEVEL_DEBUG=1
             ;;
         -s)
             exec_mode='_start'
             ;;
-        -t)
-            exec_mode='_terminate'
-            ;;
         -p)
             shift
             serverPort=$1
+            ;;
+        -t)
+            exec_mode='_terminate'
+            ;;
+        -d)
+            shift
+            exec_mode='_set_data'
+            pathDataFile=$1
+            flagAddData=0
+            ;;
+        -da)
+            shift
+            exec_mode='_set_data'
+            pathDataFile=$1
+            flagAddData=1
+            ;;
+        *)
+            _usage
+            exit 1
             ;;
     esac
 

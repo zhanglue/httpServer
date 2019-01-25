@@ -7,6 +7,7 @@
 ################################################################################
 
 import os
+import socket
 
 def path_join(*pathList):
     """
@@ -79,14 +80,9 @@ def is_port_idle(port):
     Return if port is idle.
     """
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ip = get_host_ip()
+    ip = "127.0.0.1"
     try:
-        s.connect((ip, port))
-        s.shutdown(2)
-        return False
-    except:
-        return True
-
-    return False
-
+        return s.connect_ex((ip, port)) != 0
+    finally:
+        s.close()
 
