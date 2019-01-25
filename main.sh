@@ -9,17 +9,35 @@
 _usage()
 {
     echo '
-./main.sh [--debug] [-p] SERVER_PORT MODE [MODE_PARAMS]
+./main.sh MODE [MODE_PARAMS] [-p SERVER_PORT] [--debug]
 
-    --debug: Show debug messages in stdout.
-    -p: Set HTTP server port(work in -s mode, 9100 as default).
     MODE: 
         -c: Clean up former data.
         -s: Start a HTTP server.
         -t: Terminate all HTTP servers.
+        -r: Restart HTTP server.
         -d: Set server behaviou and data.
         -da: Set server behaviou and data(add mode).
-        '
+        -dg: Get currnet response pattern.
+    -p: Set HTTP server port(work in -s mode, 9100 as default).
+    --debug: Show debug messages in stdout.
+
+    Response patterns are record as json:
+    {
+        "urlPath_A": {
+            "headers": {
+                ...
+            },
+            "respData": respString
+        },
+        "urlPath_B": {
+            "headers": {
+                ...
+            },
+            "respData": respString
+        }
+    }
+'
 }
 
 _echo_info()
@@ -127,6 +145,7 @@ do
             ;;
         -dg)
             exec_mode='_get_response_pattern'
+            LOG_LEVEL_DEBUG=1
             ;;
         -d)
             shift
