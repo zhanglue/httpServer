@@ -47,7 +47,15 @@ _start()
     python ${SCRIPT_LOCATION}/src/server.py \
         $serverHost \
         $serverPort \
-        $serverLogPath
+        $serverLogPath &
+}
+
+_terminate()
+{
+    local pid=""
+    local cmdPattern="python ${SCRIPT_LOCATION}/src/server.py"
+    pid=$(ps aux | grep "$cmdPattern" | grep -v grep | sed 's/[[:space:]]\+/ /g' | cut -d ' ' -f 2)
+    kill -9 $pid
 }
 
 builtin cd "$(dirname "${BASH_SOURCE-$0}")"
@@ -55,8 +63,8 @@ SCRIPT_LOCATION=$(pwd -P)
 builtin cd ${SCRIPT_LOCATION}
 
 LOG_LEVEL_DEBUG=0
-exec_mode='_start'
 
+exec_mode='_start'
 serverHost='127.0.0.1'
 serverPort='9100'
 serverLogPath="${SCRIPT_LOCATION}/temp"
@@ -69,6 +77,12 @@ do
             ;;
         -d)
             LOG_LEVEL_DEBUG=1
+            ;;
+        -s)
+            exec_mode='_start'
+            ;;
+        -t)
+            exec_mode='_terminate'
             ;;
         -p)
             shift
