@@ -10,9 +10,14 @@ import os
 import sys
 import socket
 from collections import defaultdict
-from http.server import BaseHTTPRequestHandler
-from http.server import HTTPServer
-from urllib.parse import urlparse
+try: 
+    from http.server import BaseHTTPRequestHandler
+    from http.server import HTTPServer
+    from urllib.parse import urlparse
+except:
+    from BaseHTTPServer import BaseHTTPRequestHandler
+    from BaseHTTPServer import HTTPServer
+    from urlparse import urlparse
 
 from json_api import json_dumps
 from json_api import json_file_to_pyData
@@ -97,14 +102,12 @@ class RequestHandler(BaseHTTPRequestHandler):
             return
 
         self.send_response(200)
-        headersNormal = {
+        headers = {
                 "Content-Length": len(pattern["respData"]),
                 "Content-type": "text/plain"
                 }
-        headersExt = {}
         if "headers" in pattern:
-            headersExt = pattern["headers"]
-        headers = {**headersNormal, **headersExt}
+            headers.update(pattern["headers"])
         for k, v in headers.items():
             self.send_header(k, v)
         self.end_headers()
@@ -179,11 +182,11 @@ def set_response_pattern(pathRespPatternFileIn, flagAddData):
         TheLogger.debug("Input response pattern: \n" + \
                 json_dumps(responsePatternIn))
 
-        responsePatternOrg = {}
+        responsePattern = {}
         if flagAddData:
-            responsePatternOrg = get_response_pattern()
+            responsePattern = get_response_pattern()
 
-        responsePattern = {**responsePatternOrg, **responsePatternIn}
+        responsePattern.update(**responsePatternIn)
         TheLogger.debug("Incomming response pattern: \n" + \
                 json_dumps(responsePattern))
 

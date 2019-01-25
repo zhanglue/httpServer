@@ -6,6 +6,7 @@
 # Date     : 2019.01.25
 ################################################################################
 
+import sys
 import codecs
 import json
 
@@ -16,7 +17,9 @@ def _byteify(data, ignore_dicts = False):
     """
     Hook function for json load/loads.
     """
-    if isinstance(data, bytes):
+    if sys.version < "3" and isinstance(data, unicode):
+        return data.encode("utf-8")
+    elif sys.version > "3" and isinstance(data, bytes):
         return data.encode("utf-8")
     elif isinstance(data, list):
         return [_byteify(item, ignore_dicts) for item in data]

@@ -20,6 +20,7 @@ _usage()
         -da: Set server behaviou and data(add mode).
         -dg: Get currnet response pattern.
     -p: Set HTTP server port(work in -s mode, 9100 as default).
+    --python3: Python as python3.
     --debug: Show debug messages in stdout.
 
     Response patterns are record as json:
@@ -77,7 +78,7 @@ _start()
     _echo_info "Clean up former data."
     _clean > /dev/null 2>&1
 
-    python3 ${SCRIPT_LOCATION}/src/server.py \
+    $PYTHON ${SCRIPT_LOCATION}/src/server.py \
         "start" \
         $serverPort &
 }
@@ -85,9 +86,11 @@ _start()
 _terminate()
 {
     local pid=""
-    local cmdPattern="python3 ${SCRIPT_LOCATION}/src/server.py"
+    local cmdPattern="python[3]\? ${SCRIPT_LOCATION}/src/server.py"
     pid=$(ps aux | grep "$cmdPattern" | grep -v grep | sed 's/[[:space:]]\+/ /g' | cut -d ' ' -f 2)
-    kill -9 $pid
+    if [[ -n $pid ]]; then
+        kill -9 $pid
+    fi
 }
 
 _restart()
@@ -98,13 +101,13 @@ _restart()
 
 _get_response_pattern()
 {
-    python3 ${SCRIPT_LOCATION}/src/server.py \
+    $PYTHON ${SCRIPT_LOCATION}/src/server.py \
         "get_response_pattern"
 }
 
 _set_response_pattern()
 {
-    python3 ${SCRIPT_LOCATION}/src/server.py \
+    $PYTHON ${SCRIPT_LOCATION}/src/server.py \
         "set_response_pattern" \
         $pathDataFile \
         $flagAddData
@@ -115,6 +118,7 @@ SCRIPT_LOCATION=$(pwd -P)
 builtin cd ${SCRIPT_LOCATION}
 
 LOG_LEVEL_DEBUG=0
+PYTHON=python
 exec_mode=''
 serverHost='127.0.0.1'
 serverPort='9100'
@@ -158,6 +162,9 @@ do
             exec_mode='_set_response_pattern'
             pathDataFile=$1
             flagAddData=1
+            ;;
+        --python3)
+            PYTHON='python3'
             ;;
         *)
             _usage

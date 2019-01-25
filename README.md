@@ -1,5 +1,5 @@
 ### General
-It is used to set a HTTP server, while set response data manually.
+It is used to set a HTTP server, while set response data manually. (Compitable with both python2/3)
 
 ### Usage
 ```
@@ -14,6 +14,7 @@ It is used to set a HTTP server, while set response data manually.
         -da: Set server behaviou and data(add mode).
         -dg: Get currnet response pattern.
     -p: Set HTTP server port(work in -s mode, 9100 as default).
+    --python3: Python as python3.
     --debug: Show debug messages in stdout.
     
     Response patterns are record as json:
