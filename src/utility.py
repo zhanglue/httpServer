@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-# Feature  : File APIs.
+# Feature  : Common APIs.
 # Author   : zhanglue
 # Date     : 2019.01.24
 ################################################################################
@@ -55,5 +55,38 @@ def is_dir_existing(dirToCheck):
             len(dirToCheck) and \
             os.path.exists(dirToCheck) and \
             os.path.isdir(dirToCheck)
+
+
+def get_env_var(varName, isInt=False):
+    """
+    Get shell environment var.
+    """
+    result = None
+
+    if varName not in os.environ:
+        return result
+
+    result = os.environ[varName]
+
+    if isInt:
+        result = int(result)
+
+    return result
+
+
+def is_port_idle(port):
+    """
+    Return if port is idle.
+    """
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    ip = get_host_ip()
+    try:
+        s.connect((ip, port))
+        s.shutdown(2)
+        return False
+    except:
+        return True
+
+    return False
 
 

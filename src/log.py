@@ -11,6 +11,8 @@ import shutil
 import logging
 import logging.handlers
 
+from utility import get_env_var
+
 def init_logger(logPath=None, logFilePrefix=None, removeFormer=False, forbiddenStd=False):
     """
     Initialize logging module.
@@ -24,12 +26,7 @@ def init_logger(logPath=None, logFilePrefix=None, removeFormer=False, forbiddenS
         # Set stream logger.
         streamHandler = logging.StreamHandler()
         streamHandler.setLevel(logging.INFO)
-
-        debugLevelFlag = 0
-        if "LOG_LEVEL_DEBUG" in os.environ:
-            debugLevelFlag = os.environ["LOG_LEVEL_DEBUG"]
-
-        if debugLevelFlag:
+        if get_env_var("LOG_LEVEL_DEBUG", isInt = True):
             streamHandler.setLevel(logging.DEBUG)
         else:
             streamHandler.setLevel(logging.INFO)

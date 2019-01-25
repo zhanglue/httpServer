@@ -13,24 +13,10 @@ from http.server import BaseHTTPRequestHandler
 from http.server import HTTPServer
 from urllib.parse import urlparse
 
-from shell import make_dir
+from utility import get_env_var
+from utility import is_port_idle
+from utility import make_dir
 from log import TheLogger
-
-def is_port_idle(port):
-    """
-    Return if port is idle.
-    """
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ip = get_host_ip()
-    try:
-        s.connect((ip, port))
-        s.shutdown(2)
-        return False
-    except:
-        return True
-
-    return False
-
 
 class RequestHandler(BaseHTTPRequestHandler):
     """
@@ -90,8 +76,8 @@ if __name__ == '__main__':
         print("Error: specify port correctly.")
     pathLog = sys.argv[3]
 
-    make_dir(pathLog, force = True)
-    TheLogger.init(pathLog, "server.log", forbiddenStd=True)
+    make_dir(pathLog)
+    TheLogger.init(pathLog, "server.log")
 
     if not serverHost or not serverPort:
         TheLogger.error('Set server host and port.')
